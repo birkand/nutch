@@ -15,5 +15,117 @@
   <value>60000</value>
   <description>TCP port used during junit testing.</description>
 </property>
+  <property>
+    <name>http.agent.name</name>
+    <value>My Nutch Spider</value>
+  </property>
+
+  <!-- <property>
+    <name>parser.character.encoding.default</name>
+    <value>UTF-8</value>
+    <description>The character encoding to fall back to when no other information
+    is available</description>
+  </property>
+   -->
+  <property>
+    <name>storage.data.store.class</name>
+    <value>org.apache.gora.hbase.store.HBaseStore</value>
+    <description>Default class for storing data</description>
+  </property>
+
+  <property>
+    <name>plugin.includes</name>
+    <!--<value>protocol-httpclient|urlfilter-regex|parse-(text|tika|js)|index-(basic|anchor)|query-(basic|site|url)|response-(json|xml)|summary-basic|scoring-(similarity|link|opic)|urlnormalizer-(pass|regex|basic)|indexer-(solr|elastic)|parsefilter-haber</value>-->
+    <value>protocol-httpclient|urlfilter-regex|parse-(text|tika|js)|index-(basic|anchor)|query-(basic|site|url)|response-(json|xml)|summary-basic|urlnormalizer-(pass|regex|basic)|indexer-(solr|elastic)|parsefilter-(haber|regex)</value>
+    <description>Regular expression naming plugin directory names to
+      include.  Any plugin not matching this expression is excluded.
+      In any case you need at least include the nutch-extensionpoints plugin. By
+      default Nutch includes crawling just HTML and plain text via HTTP,
+      and basic indexing and search plugins.
+    </description>
+  </property>
+
+
+  <property>
+    <name>parsefilter.haber.cssselectorfile</name>
+    <value>haber-cssselectors.txt</value>
+    <description>Put the name of the file you want to be used as a list of
+      css selectors to be matched in the content parsed from webpage. The format should be one word for url regex and one word for comma tabseperated cssselectors per line.
+    </description>
+  </property>
+
+  <property>
+    <name>parsefilter.haber.rawContentOutputDirectory</name>
+    <value>/tmp/pages</value>
+    <description>Put the directory if you want to save raw html pages. The directory should exist. No pages will be saved if this value is null
+    </description>
+  </property>
+
+
+
+  <property>
+    <name>plugin.folders</name>
+    <value>build/plugins</value>
+    <description>Directories where nutch plugins are located.  Each
+      element may be a relative or absolute path.  If absolute, it is used
+      as is.  If relative, it is searched for on the classpath.</description>
+  </property>
+
+  <!--<property>-->
+  <!--<name>plugin.includes</name>-->
+  <!--&lt;!&ndash; do **NOT** enable the parse-html plugin, if you want proper HTML parsing. Use something like parse-tika! &ndash;&gt;-->
+  <!--&lt;!&ndash;value>protocol-httpclient|urlfilter-regex|parse-(text|tika|js)|index-(basic|anchor)|query-(basic|site|url)|response-(json|xml)|summary-basic|scoring-opic|urlnormalizer-(pass|regex|basic)|indexer-elastic</value&ndash;&gt;-->
+  <!--<value>nutch-extensionpoints|parsefilter-haber|protocol-httpclient|urlfilter-regex|parse-(text|tika|js)|index-(basic|anchor)|query-(basic|site|url)|response-(json|xml)|summary-basic|scoring-opic|urlnormalizer-(pass|regex|basic)|indexer-solr|parsefilter-haber</value>-->
+  <!--</property>-->
+  <property>
+    <name>db.ignore.external.links</name>
+    <value>true</value> <!-- do not leave the seeded domains (optional) -->
+  </property>
+  <property>
+    <name>elastic.host</name>
+    <value>localhost</value> <!-- where is ElasticSearch listening -->
+  </property>
+  <property>
+    <name>solr.server.url</name>
+    <value>http://localhost:8983/solr/test</value>
+  </property>
+
+  <property>
+    <name>http.content.limit</name>
+    <!-- <value>65536</value> -->
+    <value>131072</value>
+    <description>The length limit for downloaded content using the http://
+      protocol, in bytes. If this value is nonnegative (>=0), content longer
+      than it will be truncated; otherwise, no truncation at all. Do not
+      confuse this setting with the file.content.limit setting.
+    </description>
+  </property>
+
+  <property>
+    <name>indexer.max.content.length</name>
+    <value>-1</value>
+    <description>The maximum number of characters of a content that are indexed.
+      Content beyond the limit is truncated. A value of -1 disables this check.
+    </description>
+  </property>
+
+  <property>
+    <name>db.ignore.external.links</name>
+    <value>true</value>
+    <description>If true, outlinks leading from a page to external hosts or domain
+      will be ignored. This is an effective way to limit the crawl to include
+      only initially injected hosts, without creating complex URLFilters.
+      See 'db.ignore.external.links.mode'.
+    </description>
+  </property>
+  <property>
+    <name>fetcher.server.delay</name>
+    <value>2.0</value>
+    <description>The number of seconds the fetcher will delay between
+      successive requests to the same server. Note that this might get
+      overridden by a Crawl-Delay from a robots.txt and is used ONLY if
+      fetcher.threads.per.queue is set to 1.
+    </description>
+  </property>
 
 </configuration>
