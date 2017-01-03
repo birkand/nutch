@@ -9,6 +9,8 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.nutch.metadata.Metadata;
 import org.apache.nutch.metadata.Nutch;
+import org.apache.nutch.net.URLNormalizer;
+import org.apache.nutch.net.URLNormalizers;
 import org.apache.nutch.parse.HTMLMetaTags;
 import org.apache.nutch.parse.HtmlParseFilter;
 import org.apache.nutch.parse.Outlink;
@@ -253,12 +255,29 @@ public class HaberParseFilter implements HtmlParseFilter {
             
             if(selectedContent != null && selectedContent.trim().length() != 0){
 
-	            Map knowledge = extractor.process(selectedContent);
+	            Map<String,Object> knowledge = extractor.process(selectedContent);
 	
 	            metadata.set("knowledge", new JSONObject(knowledge).toString());
 	
 	            //TODO write haber json and knowledge merged to file
-
+	            //FIXME config property for output directory path
+	            Map crawlMap = new HashMap<String,Object>();
+	            
+	            JSONObject crawledPage = new JSONObject();
+	            crawledPage.put("id", content.getUrl());
+	            
+	            for(Map.Entry<String,Object> entry : knowledge.entrySet()){
+	            	crawledPage.put(entry.getKey(), entry.getValue());
+	            }
+	            String normalizedUrl = content.getUrl().replaceAll("(http:|\\/)", "") + ".json";
+	            String contentOutputDir =  "/backup/aselsan-poc/pages";
+	            File f = new File(contentOutputDir,normalizedUrl);
+            	IOUtils.write(crawledPage.toString(), 
+            			new FileOutputStream(f));
+            	//FIXME encoding??
+            	LOG.info("saved merged page json -> {}, ", f.getAbsoluteFile().getPath());
+	            
+	            //TODO selector content
             }
             
             
