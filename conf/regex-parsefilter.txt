@@ -6,3 +6,7 @@
 # extracted text.
 #
 # format: <name>\t<source>\t<regex>\n
+
+
+olay	text	((ş|Ş)ehit|(y|Y)aralı|(y|Y)aralandı)
+olay	text	(?ui)(saldiri|patlama|bomba|ışid|pkk|çatışma|eyp|el yapımı patlayıcı)

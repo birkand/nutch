@@ -23,8 +23,16 @@ import java.util.regex.Pattern;
 public class HaberExtractor {
 	
 	public static final Logger LOG = LoggerFactory.getLogger(HaberExtractor.class);
-	
-	public JSONObject processHTML(String html){
+
+    private final Map<String,String> geonamesLatLonMap;
+
+    public HaberExtractor(Map geonamesMap) {
+        geonamesLatLonMap = geonamesMap;
+    }
+
+//    public HaberExtractor(){}
+
+    public JSONObject processHTML(String html){
         Document myDoc = Jsoup.parse(html);
         //TODO configurable css selector wrt to url (dha.com.tr, aa.com.tr, www.hurriyet.com.tr)
         //FIXME DONE in Haber Parse Filter move that code  to some service
@@ -102,8 +110,6 @@ public class HaberExtractor {
     	Map<String,Object> haber = new HashMap<>();
         String source = content;
 
-
-
         Pattern ldJSONregex = Pattern.compile("<script type=\"application\\/ld\\+json\">([^<>]*\"@type\": \"NewsArticle\"[^<>]*)<\\/script>{1}");
 
 
@@ -114,13 +120,13 @@ public class HaberExtractor {
         Pattern descriptionInJsonLdRegex = Pattern.compile("\"description\":\\s*\"([^\"]*)\"");
         Pattern articleBodyInJsonLdRegex = Pattern.compile("\"articleBody\":\\s*\"([^\"]*)\"");
 
-        Pattern sehitRegex = Pattern.compile("(\\d+)\\s[a-z]*\\s*(şehit)");
-        Pattern yaraliRegex = Pattern.compile("(\\d+)\\s[a-z]*\\s*(yaralı|yaralandı)");
-        Pattern olayYeriRegex = Pattern.compile("([A-ZŞÖÇÜİ][a-zşöçüı]+[-]?[\\s]*([A-ZŞÖÇÜİ]?[a-zşöçüı]*))('da|'de|'ta|'te)");
+        Pattern sehitRegex = Pattern.compile("(\\d+)\\s[a-zşöçüığ]*\\s*(şehit)");
+        Pattern yaraliRegex = Pattern.compile("(\\d+)\\s[a-zşöçüığ]*\\s*(yaralı|yaralandı)");
+        Pattern olayYeriRegex = Pattern.compile("([A-ZŞÖÇÜİ][a-zşöçüığ]+[-]?[\\s]*([A-ZŞÖÇÜİ]?[a-zşöçüığ]*))('da|'de|'ta|'te)\\s");
 
-        String sehitAskerPolisRegex = ".+\\s(\\S+)('da|'de|'ta|'te)\\s(\\d)\\D+(asker|polis)\\D+(şehit)";
+        /*String sehitAskerPolisRegex = ".+\\s(\\S+)('da|'de|'ta|'te)\\s(\\d)\\D+(asker|polis)\\D+(şehit)";
         String yaraliAskerPolisRegex = ".+\\s(\\S+)('da|'de|'ta|'te)\\s(\\d)\\D+(asker|polis)\\D+(yaralı|yaralandı)";
-
+*/
 
 
         JSONObject info = new JSONObject();
@@ -140,7 +146,7 @@ public class HaberExtractor {
                 keywords.add(m.group(1));
             }
             LOG.info("ld_keywords -> {}", Arrays.toString(keywords.toArray(new String[]{})));
-            haber.put("ld_keywords",  Arrays.toString(keywords.toArray(new String[]{})));
+            haber.put("ld_keywords",  keywords.toArray(new String[]{}));
 
             m = headlineInJsonLdRegex.matcher(source);
             if (m.find()) {
@@ -204,12 +210,24 @@ public class HaberExtractor {
 
         m = olayYeriRegex.matcher(source);
         List<String> olayYeri = new ArrayList<String>();
-        while(m.find()){
-        	olayYeri.add(m.group(1));
+        List<String> olayYeriLatLon = new ArrayList<String>();
+        while(m.find()) {
+            String olayYeriStr = m.group(1).trim();
+
+            if (olayYeriStr.length() > 0) {
+                if (geonamesLatLonMap.get(olayYeriStr) != null) {
+                    olayYeri.add(olayYeriStr);
+                    olayYeriLatLon.add(geonamesLatLonMap.get(olayYeriStr));
+                }
+            }
         }
-        haber.put("haber_olayYeri", Arrays.toString(olayYeri.toArray(new String[]{})));
+
+        haber.put("haber_olayYeriLatLon",  olayYeriLatLon.toArray(new String[]{}));
+
+        haber.put("haber_olayYeri", olayYeri.toArray(new String[]{}));
         
         LOG.info("haber_olayYeri -> {}", Arrays.toString(olayYeri.toArray(new String[]{})));
+        LOG.info("haber_olayYeriLatLon -> {}", Arrays.toString(olayYeriLatLon.toArray(new String[]{})));
 
         return haber;
 

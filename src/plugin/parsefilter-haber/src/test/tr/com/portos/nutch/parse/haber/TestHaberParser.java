@@ -59,8 +59,13 @@ public class TestHaberParser extends TestCase {
 //    pageTest(new File(testDir, "hurriyet.html"), "http://www.hurriyet.com.tr/",
 //             "recommended-content");
 
-    pageTest(new File(testDir, "dha_haber.html"), "http://www.dha.com.tr/",
-             "recommended-content");
+    /*pageTest(new File(testDir, "dha_haber.html"), "http://www.dha.com.tr/",
+             "recommended-content");*/
+    
+    pageTest(new File(testDir, "hurriyet.html"), "http://www.hurriyet.com.tr/ypgye-katilan-ingiliz-asci-suriyede-olduruldu-40325215",
+            "recommended-content");
+    
+    
 
   }
 

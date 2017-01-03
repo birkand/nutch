@@ -25,7 +25,7 @@ public class Nutch1XDriver {
 
 
 			int res2 = ToolRunner.run(NutchConfiguration.create(), new org.apache.nutch.crawl.Generator(),
-					new String[]{crawlDir + "/crawldb", crawlDir + "/segments", "-topN", "5000", "-nofilter"});
+					new String[]{crawlDir + "/crawldb", crawlDir + "/segments", "-topN", "10", "-nofilter"});
 
 			if(res2 != 0){
 				return;

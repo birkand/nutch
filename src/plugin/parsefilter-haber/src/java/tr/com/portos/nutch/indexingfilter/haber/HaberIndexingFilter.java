@@ -1,5 +1,6 @@
 package tr.com.portos.nutch.indexingfilter.haber;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -50,97 +51,45 @@ public class HaberIndexingFilter implements IndexingFilter {
 	public NutchDocument filter(NutchDocument doc, Parse parse, Text url, CrawlDatum datum, Inlinks inlinks)
 			throws IndexingException {
 
-		// check if LANGUAGE found, possibly put there by HTMLLanguageParser
-		//String lang = parse.getData().getParseMeta().get(Metadata.LANGUAGE);
-
-		// check if HTTP-header tels us the language
-//		if (lang == null) {
-//			lang = parse.getData().getContentMeta().get(Response.CONTENT_LANGUAGE);
-//		}
-		//LOG.info(parse.getData().toString());
-
-		//JSONObject knowledge = new JSONObject(parse.getData().getContentMeta().get("knowledge"));
 		String[] selectorContent = parse.getData().getContentMeta().getValues("selectorContent");
 		Boolean olay = Boolean.parseBoolean(parse.getData().getMeta("olay"));
-
-		LOG.info("olay -> {}", olay.toString());
-
-		if(olay){
-			doc.add("olay", olay);
-		}
-		else{
-			return null;
-			//FIXME olay yoksa indeksleme
-		}
-
-		
-		HaberExtractor haberExtractor = new HaberExtractor();
-		
-		Map<String,Object> knowledge = new HashMap<>(); 
 		
 		for(String content : selectorContent){
 			LOG.info("selectorContent -> {}", content);
-			Map<String,Object> contentKnowledge =  haberExtractor.process(content);
-			knowledge.putAll(contentKnowledge);
 			doc.add("selectorContent", content);
 		}
-		
-		for (Map.Entry<String,Object> knowledgeEntry : knowledge.entrySet()) {
-			doc.add(knowledgeEntry.getKey(),knowledgeEntry.getValue());
-		}
-		
-		
-		/*LOG.info("knowledge -> {}", knowledge);
-		
-		for(Object keyObj : knowledge.keySet()){
-			String key = (String) keyObj;
-			Object value = knowledge.get(key);
-			if(value instanceof JSONArray){
-				JSONArray ja  = (JSONArray) value;
-				doc.add(key, ja.join(","));
-			}else{
-				doc.add(key, knowledge.get(key));
-			}
-		}*/
 
-		/*for(String content : selectorContent){
-			doc.add("content", content);
-		}*/
-		
-		/*for(String key: ldFields){
-			String[] values = parse.getData().getContentMeta().getValues(key);
-			for(String val: values){
-				doc.add(key, val);
-			}
-		
-		}*/
-		//LOG.info("jsonLdVals: {}", jsonLdVals);
-		
-		/*if(jsonLdVals.length > 0){
-			for(String jsonLd : jsonLdVals){
-				doc.add("jsonLd", jsonLd);
-				JSONObject jo = new JSONObject(jsonLd);
-				Set<String> keyset = jo.keySet();
-				for( String key : keyset){
-					Object val = jo.get(key);
-					if(val instanceof JSONObject){
-						JSONObject jo2 = ((JSONObject)val);
-						Set<String> keyset2 = jo2.keySet();
-						for( String key2 : keyset2){
-							Object val2 = jo2.get(key2);
-							doc.add("ld." + key + "." + key2, val2);
-						}
-					}
-					else{
-						doc.add("ld." + key, jo.get(key));
+		LOG.info("olay -> {}", olay.toString());
+
+		if(parse.getData().getContentMeta().get("knowledge") != null){
+
+			JSONObject knowledge = new JSONObject(parse.getData().getContentMeta().get("knowledge"));
+			
+			for (Object keyObj : knowledge.keySet()) {
+				String key = keyObj.toString();
+				Object val  = knowledge.get(key);
+				LOG.info("{} -> {}", key, val);
+				if( val instanceof String[]){
+					String[] values = (String[])val;
+					for (int i = 0; i < values.length; i++) {
+						doc.add(key, values[i]);
 					}
 				}
-				
+				else if(val instanceof JSONArray){
+					JSONArray values = ((JSONArray)val);
+					for (int i = 0; i < values.length(); i++) {
+						doc.add(key, values.getString(i));
+					}
+				}
+				else if(val instanceof Collection){
+					throw new RuntimeException("NOT IMPLEMENTED YET!");
+				}
+				else {
+					doc.add(key, val);
+				}
 			}
-			
-			//doc.add("jsonLdJo", new JSONObject(jsonLd).keys());
-		}*/
-		//datum.
+		
+		}
 		
 		return doc;
 	}

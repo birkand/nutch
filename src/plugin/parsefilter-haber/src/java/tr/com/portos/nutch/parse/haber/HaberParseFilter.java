@@ -30,8 +30,7 @@ import org.xml.sax.InputSource;
 import java.io.*;
 import java.lang.String;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Locale;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,7 +42,10 @@ public class HaberParseFilter implements HtmlParseFilter {
     public static final Logger LOG = LoggerFactory.getLogger(HaberParseFilter.class);
 
     public static final String CSSSELECTOR_FILE = "parsefilter.haber.cssselectorfile";
-    
+    public static final String GEONAMES_REF_FILE = "parsefilter.haber.geonamesfile";
+
+    private static Map geonamesLatLonMap;
+
     
     
     // I used 1000 bytes at first, but found that some documents have
@@ -72,7 +74,7 @@ public class HaberParseFilter implements HtmlParseFilter {
     private String dictionaryFile;
     private ArrayList<String> wordlist = new ArrayList<String>();
     private ArrayList<UrlCssSelector> selectors = new ArrayList<UrlCssSelector>();
-    private HaberExtractor extractor = new HaberExtractor();
+    private HaberExtractor extractor;
 
     /*public boolean filterParse(String text) {
 
@@ -149,7 +151,25 @@ public class HaberParseFilter implements HtmlParseFilter {
             }
             
             rawContentOutputDirectory = getConf().get("parsefilter.haber.rawContentOutputDirectory", null);
-            
+
+            Reader reader2 = conf.getConfResourceAsReader("TR_all_names_lines.json");
+            br = new BufferedReader(reader);
+//            List<String> allPlaces = IOUtils.readLines( new FileInputStream("/backup/aselsan-poc/TR_all_names_lines.json"));
+            List<String> allPlaces = IOUtils.readLines( reader2);
+            List<JSONObject> places = new ArrayList<JSONObject>();
+            HashMap<String,String> placesMap = new HashMap<String, String>();
+            List<String> refFeatureCodes = Arrays.asList(new String[]{"PPLA", "PPLA2", "PPLC"});
+            for(String placeJson: allPlaces){
+                JSONObject place = new JSONObject(placeJson);
+                places.add(place);
+                if(refFeatureCodes.contains(place.getString("featureCode"))){
+                    placesMap.put(place.getString("name"), place.getString("location"));
+                }
+            }
+            extractor = new HaberExtractor(placesMap);
+//            conf.set("places", new JSONObject(placesMap).toString());
+            geonamesLatLonMap = placesMap;
+
 
         } catch (IOException e) {
             LOG.error(StringUtils.stringifyException(e));
@@ -169,6 +189,9 @@ public class HaberParseFilter implements HtmlParseFilter {
         Metadata metadata = parse.getData().getContentMeta();
         
         try {
+            //FIXME burada olay yeri adaylari ile geonames veritabanini karsilastir ve lat long degerlerini indeksle
+            //FIXME burada olay yeri adaylari ile geonames veritabanini karsilastir ve lat long degerlerini indeksle
+
             byte[] contentInOctets = content.getContent();
             InputSource input = new InputSource(new ByteArrayInputStream(
                     contentInOctets));
@@ -225,6 +248,19 @@ public class HaberParseFilter implements HtmlParseFilter {
                 LOG.error("cannot find a cssSelector for url: {}", url);
                 //throw new IllegalArgumentException("cannot find a valid cssSelector for url: "+ url);
             }
+
+//            HaberExtractor extractor = new HaberExtractor();
+            
+            if(selectedContent != null && selectedContent.trim().length() != 0){
+
+	            Map knowledge = extractor.process(selectedContent);
+	
+	            metadata.set("knowledge", new JSONObject(knowledge).toString());
+	
+	            //TODO write haber json and knowledge merged to file
+
+            }
+            
             
             if(rawContentOutputDirectory != null){
             	String fileName = content.getUrl().replaceAll("http|[:\\/]", "")+".txt";
