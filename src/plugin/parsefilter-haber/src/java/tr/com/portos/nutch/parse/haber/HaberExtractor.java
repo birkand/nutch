@@ -223,6 +223,7 @@ public class HaberExtractor {
         }
 
         haber.put("haber_olayYeriLatLon",  olayYeriLatLon.toArray(new String[]{}));
+        haber.put("location_srpt",  olayYeriLatLon.toArray(new String[]{}));
 
         haber.put("haber_olayYeri", olayYeri.toArray(new String[]{}));
         

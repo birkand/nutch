@@ -29,9 +29,12 @@ import org.jsoup.safety.Whitelist;
 import org.jsoup.select.Elements;
 import org.xml.sax.InputSource;
 
+import com.ibm.icu.text.SimpleDateFormat;
+
 import java.io.*;
 import java.lang.String;
 import java.nio.charset.StandardCharsets;
+import java.text.DateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -77,6 +80,7 @@ public class HaberParseFilter implements HtmlParseFilter {
     private ArrayList<String> wordlist = new ArrayList<String>();
     private ArrayList<UrlCssSelector> selectors = new ArrayList<UrlCssSelector>();
     private HaberExtractor extractor;
+    private SimpleDateFormat fmt = new SimpleDateFormat("yyyyMMddHHmmss");
 
     /*public boolean filterParse(String text) {
 
@@ -191,8 +195,6 @@ public class HaberParseFilter implements HtmlParseFilter {
         Metadata metadata = parse.getData().getContentMeta();
         
         try {
-            //FIXME burada olay yeri adaylari ile geonames veritabanini karsilastir ve lat long degerlerini indeksle
-            //FIXME burada olay yeri adaylari ile geonames veritabanini karsilastir ve lat long degerlerini indeksle
 
             byte[] contentInOctets = content.getContent();
             InputSource input = new InputSource(new ByteArrayInputStream(
@@ -202,13 +204,22 @@ public class HaberParseFilter implements HtmlParseFilter {
 
             EncodingDetector detector = new EncodingDetector(conf);
             detector.addClue(sniffCharacterEncoding(contentInOctets), "sniffed");
-            String encoding = detector.guessEncoding(content, defaultCharEncoding);
+            String encoding = detector.guessEncoding(content, defaultCharEncoding).toUpperCase(Locale.ENGLISH);
 
             metadata.set(Metadata.ORIGINAL_CHAR_ENCODING, encoding);
             metadata.set(Metadata.CHAR_ENCODING_FOR_CONVERSION, encoding);
 
-         
-        	String selectedContent = null;
+            //FIXME burada olay yeri adaylari ile geonames veritabanini karsilastir ve lat long degerlerini indeksle
+            //FIXME burada olay yeri adaylari ile geonames veritabanini karsilastir ve lat long degerlerini indeksle
+            Map crawlMap = new HashMap<String,Object>();
+
+            JSONObject crawledPage = new JSONObject();
+            crawledPage.put("id", content.getUrl());
+            crawledPage.put("content", parse.getText());
+
+
+
+            String selectedContent = null;
         	
             String url = content.getUrl();
             String cssSelector = null;
@@ -258,27 +269,25 @@ public class HaberParseFilter implements HtmlParseFilter {
 	            Map<String,Object> knowledge = extractor.process(selectedContent);
 	
 	            metadata.set("knowledge", new JSONObject(knowledge).toString());
-	
 	            //TODO write haber json and knowledge merged to file
 	            //FIXME config property for output directory path
-	            Map crawlMap = new HashMap<String,Object>();
-	            
-	            JSONObject crawledPage = new JSONObject();
-	            crawledPage.put("id", content.getUrl());
 	            
 	            for(Map.Entry<String,Object> entry : knowledge.entrySet()){
 	            	crawledPage.put(entry.getKey(), entry.getValue());
 	            }
-	            String normalizedUrl = content.getUrl().replaceAll("(http:|\\/)", "") + ".json";
-	            String contentOutputDir =  "/backup/aselsan-poc/pages";
-	            File f = new File(contentOutputDir,normalizedUrl);
-            	IOUtils.write(crawledPage.toString(), 
-            			new FileOutputStream(f));
-            	//FIXME encoding??
-            	LOG.info("saved merged page json -> {}, ", f.getAbsoluteFile().getPath());
-	            
 	            //TODO selector content
             }
+
+            String normalizedUrl = content.getUrl().replaceAll("(http:|\\/)", "") + ".json";
+            String contentOutputDirPath =  "/backup/aselsan-poc/pages";
+            String crawlDir = fmt.format(new Date());
+            File contentOutputDir = new File(contentOutputDirPath, crawlDir);
+            contentOutputDir.mkdirs();
+            File f1 = new File(contentOutputDir,normalizedUrl);
+            IOUtils.write(crawledPage.toString(),
+                    new FileOutputStream(f1));
+            //FIXME encoding??
+            LOG.info("saved merged page json -> {}", f1.getAbsoluteFile().getPath());
             
             
             if(rawContentOutputDirectory != null){
