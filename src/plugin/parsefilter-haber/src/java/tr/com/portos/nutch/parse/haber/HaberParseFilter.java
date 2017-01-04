@@ -279,10 +279,10 @@ public class HaberParseFilter implements HtmlParseFilter {
             }
 
             String normalizedUrl = content.getUrl().replaceAll("(http:|\\/)", "") + ".json";
-            String contentOutputDirPath =  "/backup/aselsan-poc/pages";
-            String crawlDir = fmt.format(new Date());
-            File contentOutputDir = new File(contentOutputDirPath, crawlDir);
-            contentOutputDir.mkdirs();
+            String contentOutputDirPath =  "/backup/aselsan-poc/news/pages/single";
+            /*String crawlDir = fmt.format(new Date());*/
+            File contentOutputDir = new File(contentOutputDirPath/*, crawlDir*/);
+            /*contentOutputDir.mkdirs();*/
             File f1 = new File(contentOutputDir,normalizedUrl);
             IOUtils.write(crawledPage.toString(),
                     new FileOutputStream(f1));
