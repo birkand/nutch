@@ -1,0 +1,8 @@
+#hurriyet.com.tr	div[class^="news-detail-"]
+#hurriyet.com.tr	div.news-detail
+hurriyet.com.tr	div.news-detail-top,div.news-detail-spot,div.news-detail-text
+
+aa.com.tr	div.article header, div.article div.article-post-content
+dha.com.tr	div.icerikbaslik, div.icerikyazi
+
+

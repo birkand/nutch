@@ -1867,7 +1867,7 @@ visit https://wiki.apache.org/nutch/SimilarityScoringFilter-->
 
 <property> 
   <name>elastic.index</name>
-  <value>nutch</value> 
+  <value>test</value> 
   <description>Default index to send documents to.</description>
 </property>
 
